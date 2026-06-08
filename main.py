@@ -1,16 +1,17 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from database import (
-    get_all_data,
-    delete_message_by_id,
-    update_message_by_id,
-    insert_message,
-    get_message_by_id,
-    find_messages_by_user,
-    search_message,
-)
 
-app = FastAPI()
+from database import (
+    delete_message_by_id,
+    find_messages_by_user,
+    get_all_data,
+    get_latest_message,
+    get_message_by_id,
+    insert_message,
+    search_message,
+    update_message_by_id,
+)
 
 
 class Message(BaseModel):
@@ -22,12 +23,31 @@ class MessageUpdate(BaseModel):
     message: str
 
 
+def row_to_dict(row):
+    return {"id": row[0], "user": row[1], "message": row[2], "created_at": row[3]}
+
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @app.post("/messages")
 def send(message: Message):
-
     insert_message(message.user, message.message)
 
-    return {"status": "success", "data": message.dict()}
+    latest = get_latest_message()
+
+    if latest:
+        return row_to_dict(latest)
+    else:
+        return {"status": "error", "message": "Failed to create message"}
 
 
 @app.get("/messages")
@@ -35,14 +55,17 @@ def get_all_messages():
     data = get_all_data()
     messages = []
     for row in data:
-        message_dict = {
-            "id": row[0],
-            "user": row[1],
-            "message": row[2],
-            "created_at": row[3],
-        }
+        message_dict = row_to_dict(row)
         messages.append(message_dict)
     return {"messages": messages}
+
+
+@app.get("/messages/latest")
+def get_recent_text():
+    data = get_latest_message()
+    if not data:
+        return {"status": "fail", "message": "No messages found"}
+    return {"message": row_to_dict(data)}
 
 
 @app.get("/messages/{message_id}")
@@ -50,14 +73,7 @@ def get_one_message(message_id: int):
     data = get_message_by_id(message_id)
     if not data:
         return {"status": "fail", "message": "Message not found"}
-    return {
-        "message": {
-            "id": data[0],
-            "user": data[1],
-            "message": data[2],
-            "created_at": data[3],
-        }
-    }
+    return {"message": row_to_dict(data)}
 
 
 @app.delete("/messages/{message_id}")
@@ -87,9 +103,7 @@ def get_only_user_message(username: str):
         return {"status": "fail", "message": "user not found"}
     messages = []
     for row in data:
-        messages.append(
-            {"id": row[0], "user": row[1], "message": row[2], "created_at": row[3]}
-        )
+        messages.append(row_to_dict(row))
 
     return {"messages": messages}
 
@@ -106,8 +120,6 @@ def search_messages(text: str | None = None):
 
     messages = []
     for row in data:
-        messages.append(
-            {"id": row[0], "user": row[1], "message": row[2], "created_at": row[3]}
-        )
+        messages.append(row_to_dict(row))
 
     return {"messages": messages}

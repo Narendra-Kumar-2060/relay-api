@@ -61,3 +61,8 @@ def find_messages_by_user(username):
 def search_message(message):
     cur.execute("SELECT * FROM messages WHERE message LIKE ?", ("%" + message + "%",))
     return cur.fetchall()
+
+
+def get_latest_message():
+    cur.execute("SELECT * FROM messages ORDER BY created_at DESC LIMIT 1")
+    return cur.fetchone()
