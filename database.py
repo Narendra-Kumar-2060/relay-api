@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+import hashlib
 
 con = sqlite3.connect("relay.db", check_same_thread=False)
 cur = con.cursor()
@@ -18,6 +19,54 @@ def create_table():
 
 
 create_table()
+
+
+def create_user_table():
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS user (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT,
+        created_at TEXT,
+        country TEXT,
+        name TEXT
+    )
+    """)
+    con.commit()
+
+
+create_user_table()
+
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+def get_user_list():
+    cur.execute("SELECT username FROM user")
+    all_rows = cur.fetchall()
+
+    usernames = []
+
+    for row in all_rows:
+        usernames.append(row[0])
+
+    return usernames
+
+
+def add_user(username, password, country, name):
+    hashed_password = hash_password(password)
+    created_at = datetime.now().isoformat()
+    cur.execute(
+        "INSERT INTO user (username, password, created_at, country, name) VALUES (?, ?, ?, ?, ?)",
+        (username, hashed_password, created_at, country, name),
+    )
+    con.commit()
+
+
+def get_user_password(username):
+    cur.execute("SELECT password FROM user WHERE username = ?", (username,))
+    return cur.fetchone()
 
 
 def get_all_data():

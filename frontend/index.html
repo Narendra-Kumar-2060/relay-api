@@ -8,30 +8,36 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
     <div class="message-box">
-      <h1>Relay Chat</h1>
-      <div class="message-area"></div>
+      <div class="chat-header">
+        <h1>Relay Chat</h1>
+        <div class="header-right">
+          <span class="user-info"
+            >Logged in as: <strong id="current-user">Anonymous</strong></span
+          >
+          <button id="logout-btn" class="logout-btn">Logout</button>
+        </div>
+      </div>
+
+      <div class="message-area" id="message-area">
+        <div class="empty-state" id="empty-state">
+          <p>No messages yet. Say hello! 👋</p>
+        </div>
+      </div>
+
       <div class="input-field">
         <input
           type="text"
-          name="username-box"
           id="username-box"
           placeholder="Username"
           value="Anonymous"
-          autocomplete="off"
         />
-        <input
-          type="text"
-          name="text-box"
-          id="text-box"
-          placeholder="Type text..."
-          autocomplete="off"
-        />
+        <input type="text" id="text-box" placeholder="Type text..." />
         <button type="button" id="send-text">Send</button>
       </div>
     </div>

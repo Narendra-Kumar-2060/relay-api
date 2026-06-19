@@ -11,7 +11,23 @@ from database import (
     insert_message,
     search_message,
     update_message_by_id,
+    get_user_list,
+    add_user,
+    get_user_password,
+    hash_password,
 )
+
+
+class User(BaseModel):
+    name: str
+    username: str
+    password: str
+    country: str
+
+
+class LoginData(BaseModel):
+    username: str
+    password: str
 
 
 class Message(BaseModel):
@@ -36,6 +52,35 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/register")
+def register(user: User):
+    if user.username in get_user_list():
+        return {"status": "error", "message": "username is already taken"}
+    add_user(user.username, user.password, user.country, user.name)
+    return {"status": "success", "message": "username is created"}
+
+
+@app.post("/login")
+def login(credentials: LoginData):
+    username = credentials.username
+    password = credentials.password
+
+    if username not in get_user_list():
+        return {"status": "error", "message": "Invalid username or password"}
+
+    stored_password = get_user_password(username)
+
+    if not stored_password:
+        return {"status": "error", "message": "Invalid username or password"}
+
+    hashed_input = hash_password(password)
+
+    if stored_password[0] == hashed_input:
+        return {"status": "success", "message": "Login successful!", "user": username}
+    else:
+        return {"status": "error", "message": "Invalid username or password"}
 
 
 @app.post("/messages")

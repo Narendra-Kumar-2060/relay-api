@@ -1,39 +1,45 @@
-# Relay Chat - Full Stack Messaging App
+# Relay Chat
 
-A real-time chat application built with FastAPI backend, SQLite database, and modern frontend. Perfect for learning full-stack development!
+A full-stack real-time chat application built with **FastAPI**, **SQLite**, and a vanilla **HTML/CSS/JS** frontend. Features user authentication, persistent messaging, and full CRUD operations via a RESTful API.
 
 ## Features
 
 ### Backend (FastAPI)
 
-- Full CRUD operations (Create, Read, Update, Delete)
-- RESTful API design
+- User registration and login with **SHA-256 password hashing**
+- Full CRUD operations on messages (Create, Read, Update, Delete)
+- RESTful API design with clean JSON responses
 - SQLite database for persistent storage
-- CORS enabled for frontend integration
-- Input validation with Pydantic
-- Auto-generated API docs at `/docs`
+- CORS middleware for frontend integration
+- Input validation with **Pydantic** models
+- Auto-generated interactive API docs at `/docs`
 
 ### Frontend (HTML/CSS/JS)
 
-- Real-time message display
-- Responsive design (works on mobile & desktop)
-- Modern gradient UI with smooth animations
-- Enter key to send messages
+- Login and registration pages with client-side validation
+- Real-time message display with per-user chat bubbles
+- Edit and delete your own messages
+- Logout with confirmation prompt
 - Auto-scroll to latest messages
-- XSS protection with HTML escaping
-- Clean timestamp formatting
+- Enter key to send messages
+- XSS protection via HTML escaping
+- Responsive design (desktop & mobile)
+- Modern gradient UI with smooth animations
 
-### API Endpoints
+## API Reference
 
-| Method | Endpoint                     | Description         |
-| ------ | ---------------------------- | ------------------- |
-| GET    | `/messages`                  | Get all messages    |
-| POST   | `/messages`                  | Create new message  |
-| GET    | `/messages/{id}`             | Get single message  |
-| PUT    | `/messages/{id}`             | Update message      |
-| DELETE | `/messages/{id}`             | Delete message      |
-| GET    | `/users/{username}/messages` | Get user's messages |
-| GET    | `/search/?text=`             | Search messages     |
+| Method | Endpoint                     | Description             |
+| ------ | ---------------------------- | ----------------------- |
+| POST   | `/register`                  | Register a new user     |
+| POST   | `/login`                     | Login and get username  |
+| GET    | `/messages`                  | Get all messages        |
+| POST   | `/messages`                  | Send a new message      |
+| GET    | `/messages/latest`           | Get the latest message  |
+| GET    | `/messages/{id}`             | Get a single message    |
+| PUT    | `/messages/{id}`             | Edit a message          |
+| DELETE | `/messages/{id}`             | Delete a message        |
+| GET    | `/users/{username}/messages` | Get a user's messages   |
+| GET    | `/search/?text=`             | Search messages by text |
 
 ## Quick Start
 
@@ -47,8 +53,8 @@ A real-time chat application built with FastAPI backend, SQLite database, and mo
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/relay-chat.git
-cd relay-chat
+git clone https://github.com/Narendra-Kumar-2060/relay.git
+cd relay
 ```
 
 2. **Install dependencies**
@@ -65,127 +71,71 @@ uvicorn main:app --reload
 
 4. **Open the frontend**
 
-- Open index.html in your browser
+Open `frontend/login.html` in your browser, or serve it with Live Server in VS Code.
 
-- Or use Live Server in VS Code
-
-5. **Start chatting!**
+5. **Register an account and start chatting!**
 
 ## Project Structure
 
-```text
-relay-chat/
-├── index.html    # Frontend UI
-├── style.css     # Modern styling
-├── script.js     # Client-side logic
-├── main.py       # FastAPI backend
-├── database.py   # SQLite operations
-├── response.json # Sample data
-└── README.md     # Documentation
+```
+relay/
+├── main.py           # FastAPI app and route handlers
+├── database.py       # SQLite operations and password hashing
+├── relay.db          # SQLite database (auto-created)
+├── frontend/
+│   ├── index.html    # Main chat UI
+│   ├── login.html    # Login page
+│   ├── register.html # Registration page
+│   ├── script.js     # Chat logic and message rendering
+│   ├── auth.js       # Login and registration handlers
+│   └── style.css     # Styling and animations
+└── README.md
 ```
 
 ## How It Works
 
-1. Send Message: User types message → Frontend sends POST request → Backend saves to SQLite
-
-2. Load Messages: Page loads → Frontend fetches GET request → Backend returns all messages
-
-3. Display: Messages appear with timestamps and user avatars
-
-4. Persist: Messages survive browser refresh (stored in database)
+1. **Register / Login** — User creates an account; password is hashed with SHA-256 before storage.
+2. **Send Message** — Frontend sends a `POST /messages` request; backend saves to SQLite and returns the new message.
+3. **Load Messages** — On page load, frontend fetches `GET /messages`; all messages render with timestamps and avatars.
+4. **Edit / Delete** — Own messages show Edit and Delete buttons that call `PUT` and `DELETE` endpoints.
+5. **Persist** — Messages survive browser refresh (stored in SQLite).
 
 ## Tech Stack
 
-| Layer    | Technology                       |
-| -------- | -------------------------------- |
-| Backend  | FastAPI (Python)                 |
-| Database | SQLite                           |
-| Frontend | HTML5, CSS3, JavaScript          |
-| Styling  | CSS3 with Gradients & Animations |
-| API      | Protocol REST                    |
+| Layer    | Technology               |
+| -------- | ------------------------ |
+| Backend  | FastAPI (Python)         |
+| Database | SQLite                   |
+| Auth     | SHA-256 password hashing |
+| Frontend | HTML5, CSS3, JavaScript  |
+| Fonts    | Google Fonts (Poppins)   |
 
-## Responsive Design
+## Security
 
-- Desktop: 60vw chat window with gradient background
+- Passwords hashed with SHA-256 before storage (never stored in plain text)
+- XSS protection via HTML escaping on all user-generated content
+- SQL injection prevention using parameterized queries
+- Input validation on both frontend and backend via Pydantic
 
-- Mobile: Full-width chat window (95vw) with optimized inputs
+## Planned Improvements
 
-- Smooth animations: Fade-in effects for new messages
-
-## Security Features
-
-- XSS protection via HTML escaping
-
-- Input validation on both frontend and backend
-
-- SQL injection prevention (parameterized queries)
-
-- CORS properly configured
-
-## Future Enhancements
-
-- User authentication (login/register)
-
-- Message edit/delete buttons
-
-- Real-time WebSocket connections
-
-- File/image sharing
-
+- JWT-based authentication (replace URL param session)
+- WebSocket support for true real-time messaging
+- Typing indicators and read receipts
+- File and image sharing
 - Message reactions
-
-- Typing indicators
-
-- Read receipts
-
-- Deploy to cloud (Railway/Render)
-
-## Contributing
-
-This is a learning project! Feel free to:
-
-- Fork and experiment
-
-- Add new features
-
-- Report bugs
-
-- Suggest improvements
+- Cloud deployment (Railway / Render)
 
 ## What I Learned
 
-Building this project taught me:
-
-- REST API design with FastAPI
-
-- Database operations with SQLite
-
-- Frontend-backend integration
-
-- Async JavaScript with fetch API
-
-- DOM manipulation and event handling
-
-- Security best practices (XSS, SQL injection)
-
-- Responsive CSS design
-
-## Acknowledgments
-
-- FastAPI documentation
-
-- SQLite tutorials
-
-- Font Awesome (inspiration for icons)
-
-- Google Fonts (Poppins font)
+- REST API design and implementation with FastAPI
+- Password hashing and basic authentication flows
+- SQLite database operations with parameterized queries
+- Frontend-backend integration using the Fetch API
+- DOM manipulation and dynamic UI rendering
+- Security best practices: XSS prevention, SQL injection, password hashing
+- Responsive CSS design with gradients and animations
 
 ## License
 
-MIT License - Feel free to use for learning
-
-## Current Status
-
-- SQLite database for persistent storage
-- All CRUD operations working
-- Production-ready for learning
+MIT License — free to use for learning and experimentation.

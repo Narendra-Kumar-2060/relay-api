@@ -1,103 +1,237 @@
-function formatTime(isoString) {
-  if (!isoString) return "Just now";
-  try {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } catch (e) {
-    return "Just now";
-  }
+const usernameField = document.querySelector("#username-box");
+const textField = document.querySelector("#text-box");
+const sendBtn = document.querySelector("#send-text");
+const currentUser = document.querySelector("#current-user");
+const logoutBtn = document.querySelector("#logout-btn");
+
+function isoTimeToString(isoStr) {
+    const dateObj = new Date(isoStr);
+    const localTime12 = dateObj.toLocaleTimeString("en-US", { hour12: true });
+    return localTime12;
 }
 
 function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-function addMessageToUI(messageArea, resultData) {
-  const singleMessageDiv = document.createElement("div");
-  singleMessageDiv.classList.add("single-message");
+async function editMessage(id) {
+    const newText = prompt("Edit your message:");
 
-  const formattedTime = formatTime(resultData.created_at);
+    if (!newText || newText.trim() === "") return;
 
-  singleMessageDiv.innerHTML = `
-    <div class="profile-logo" aria-label="Profile avatar"></div>
-    <div class="message-content">
-      <span class="username">${escapeHtml(resultData.user)}</span>
-      <span class="message">${escapeHtml(resultData.message)}</span>
-      <span class="time">${formattedTime}</span>
-    </div>
-  `;
-
-  messageArea.appendChild(singleMessageDiv);
-  messageArea.scrollTop = messageArea.scrollHeight;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const mainSendBtn = document.querySelector("#send-text");
-  const usernameField = document.querySelector("#username-box");
-  const textField = document.querySelector("#text-box");
-  const messageArea = document.querySelector(".message-area");
-
-  messageArea.innerHTML = "";
-
-  async function loadChatHistory() {
     try {
-      const response = await fetch("http://127.0.0.1:8000/messages");
-      const result = await response.json();
-
-      if (result.messages) {
-        result.messages.forEach((msg) => {
-          addMessageToUI(messageArea, msg);
+        const response = await fetch(`http://127.0.0.1:8000/messages/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                message: newText.trim(),
+            }),
         });
-      }
-    } catch (error) {
-      console.error("Error loading history:", error);
-    }
-  }
 
-  async function sendMessage() {
+        if (response.ok) {
+            const messageDiv = document.querySelector(
+                `.single-message[data-id="${id}"]`,
+            );
+            if (messageDiv) {
+                const messageSpan = messageDiv.querySelector(".message");
+                messageSpan.textContent = newText.trim();
+            }
+        } else {
+            alert("Failed to edit message");
+        }
+    } catch (error) {
+        console.error("Edit error:", error);
+        alert("Cannot connect to server");
+    }
+}
+
+async function deleteMessage(id) {
+    const confirmDelete = confirm("Delete this message?");
+
+    if (!confirmDelete) return;
+
     try {
-      const userText = textField.value.trim();
-      const userName = usernameField.value.trim();
+        const response = await fetch(`http://127.0.0.1:8000/messages/${id}`, {
+            method: "DELETE",
+        });
 
-      if (!userText) return;
+        if (response.ok) {
+            const messageDiv = document.querySelector(
+                `.single-message[data-id="${id}"]`,
+            );
+            if (messageDiv) {
+                messageDiv.remove();
 
-      const userData = {
-        user: userName || "Anonymous",
-        message: userText,
-      };
-
-      const response = await fetch("http://127.0.0.1:8000/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      const result = await response.json();
-
-      if (result.id) {
-        addMessageToUI(messageArea, result);
-      }
-
-      textField.value = "";
+                const messageArea = document.querySelector("#message-area");
+                const remainingMessages =
+                    messageArea.querySelectorAll(".single-message");
+                if (remainingMessages.length === 0) {
+                    messageArea.innerHTML = `
+                        <div class="empty-state" id="empty-state">
+                            <p>No messages yet. Say hello! 👋</p>
+                        </div>
+                    `;
+                }
+            }
+        } else {
+            alert("Failed to delete message");
+        }
     } catch (error) {
-      console.error("Error sending message:", error);
+        console.error("Delete error:", error);
+        alert("Cannot connect to server");
     }
-  }
+}
 
-  mainSendBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    sendMessage();
-  });
-  textField.addEventListener("keypress", (e) => {
+async function loadMessages() {
+    const url = "http://127.0.0.1:8000/messages";
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        const messageArea = document.querySelector("#message-area");
+        messageArea.innerHTML = "";
+
+        data.messages.forEach((msg) => {
+            loadMessageToUI(msg);
+        });
+    } catch (error) {
+        console.error("Fetch failed:", error.message);
+    }
+}
+loadMessages();
+
+
+let refreshInterval = null;
+
+function startAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+
+    refreshInterval = setInterval(async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/messages");
+            const data = await response.json();
+
+            const existingIds = new Set();
+            document.querySelectorAll('.single-message').forEach(msgDiv => {
+                const id = msgDiv.dataset.id;
+                if (id) existingIds.add(parseInt(id));
+            });
+
+            if (data.messages) {
+                data.messages.forEach(msg => {
+                    if (!existingIds.has(msg.id)) {
+                        loadMessageToUI(msg);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error("Auto-refresh error:", error);
+        }
+    }, 3000);
+}
+
+startAutoRefresh();
+
+async function sendMessage() {
+    const text = textField.value.trim();
+    if (!text) return;
+
+    sendBtn.disabled = true;
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/messages", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                user: username,
+                message: text,
+            }),
+        });
+
+        if (response.ok) {
+            const newMessage = await response.json();
+            loadMessageToUI(newMessage);
+            textField.value = "";
+            textField.focus();
+        }
+    } catch (error) {
+        console.error("Send error:", error);
+        alert("Could not send message");
+    } finally {
+        sendBtn.disabled = false;
+    }
+}
+
+function loadMessageToUI(messageData) {
+    const isOwn = messageData.user === username;
+    const messageDiv = document.createElement("div");
+    messageDiv.className = "single-message" + (isOwn ? " own" : "");
+    messageDiv.dataset.id = messageData.id;
+
+    const firstLetter = messageData.user.charAt(0).toUpperCase();
+    const timeString = isoTimeToString(messageData.created_at);
+
+    messageDiv.innerHTML = `
+        <div class="profile-logo">${firstLetter}</div>
+        <div class="message-content">
+            <span class="username">${escapeHtml(messageData.user)}</span>
+            <span class="message">${escapeHtml(messageData.message)}</span>
+            <span class="time">${timeString}</span>
+            ${isOwn
+            ? `
+                <div class="message-actions">
+                    <button class="edit-btn" data-id="${messageData.id}">✏️ Edit</button>
+                    <button class="delete-btn" data-id="${messageData.id}">🗑 Delete</button>
+                </div>
+            `
+            : ""
+        }
+        </div>
+    `;
+
+    const messageArea = document.querySelector("#message-area");
+    messageArea.appendChild(messageDiv);
+
+    if (isOwn) {
+        const editBtn = messageDiv.querySelector(".edit-btn");
+        const deleteBtn = messageDiv.querySelector(".delete-btn");
+
+        editBtn.addEventListener("click", () => editMessage(messageData.id));
+        deleteBtn.addEventListener("click", () => deleteMessage(messageData.id));
+    }
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+const username = urlParams.get("username");
+if (!username) {
+    window.location.href = "login.html";
+}
+usernameField.value = username;
+currentUser.textContent = username;
+sendBtn.addEventListener("click", sendMessage);
+
+textField.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-      e.preventDefault();
-      sendMessage();
+        e.preventDefault();
+        sendMessage();
     }
-  });
+});
 
-  loadChatHistory();
+logoutBtn.addEventListener("click", () => {
+    if (confirm("Are you sure you want to logout?")) {
+        window.location.href = "login.html";
+    }
 });
