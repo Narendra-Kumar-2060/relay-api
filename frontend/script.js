@@ -22,7 +22,7 @@ async function editMessage(id) {
     if (!newText || newText.trim() === "") return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/messages/${id}`, {
+        const response = await fetch(`https://relay-api-zizt.onrender.com/messages/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -55,7 +55,7 @@ async function deleteMessage(id) {
     if (!confirmDelete) return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/messages/${id}`, {
+        const response = await fetch(`https://relay-api-zizt.onrender.com/messages/${id}`, {
             method: "DELETE",
         });
 
@@ -87,7 +87,7 @@ async function deleteMessage(id) {
 }
 
 async function loadMessages() {
-    const url = "http://127.0.0.1:8000/messages";
+    const url = "https://relay-api-zizt.onrender.com/messages";
     try {
         const response = await fetch(url);
 
@@ -119,7 +119,7 @@ function startAutoRefresh() {
 
     refreshInterval = setInterval(async () => {
         try {
-            const response = await fetch("http://127.0.0.1:8000/messages");
+            const response = await fetch("https://relay-api-zizt.onrender.com/messages");
             const data = await response.json();
 
             const existingIds = new Set();
@@ -150,7 +150,7 @@ async function sendMessage() {
     sendBtn.disabled = true;
 
     try {
-        const response = await fetch("http://127.0.0.1:8000/messages", {
+        const response = await fetch("https://relay-api-zizt.onrender.com/messages", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

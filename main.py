@@ -53,6 +53,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {"message": "Relay Chat API is running. Go to /docs for API documentation."}
 
 @app.post("/register")
 def register(user: User):
