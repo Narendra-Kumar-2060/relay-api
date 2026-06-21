@@ -10,6 +10,10 @@ function isoTimeToString(isoStr) {
     return localTime12;
 }
 
+function trimString(str) {
+    return str.trim();
+}
+
 function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;

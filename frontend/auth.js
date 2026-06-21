@@ -7,11 +7,20 @@ const regUsernameInput = document.querySelector("#reg-username");
 const regPasswordInput = document.querySelector("#reg-password");
 const countryInput = document.querySelector("#country");
 
+function trimString(str) {
+    return str.trim();
+}
+
 async function handleLoginClick(event) {
     event.preventDefault();
 
-    const usernameValue = usernameInput.value;
+    const usernameValue = trimString(usernameInput.value);
     const passwordValue = passwordInput.value;
+
+    if (!usernameValue) {
+        alert("Username cannot be empty");
+        return;
+    }
 
     const data = {
         username: usernameValue,
@@ -45,10 +54,15 @@ async function handleLoginClick(event) {
 async function handleRegisterClick(event) {
     event.preventDefault();
 
-    const nameValue = nameInput.value;
-    const usernameValue = regUsernameInput.value;
+    const nameValue = trimString(nameInput.value);
+    const usernameValue = trimString(regUsernameInput.value);
     const passwordValue = regPasswordInput.value;
     const countryValue = countryInput.value;
+
+    if (!usernameValue) {
+        alert("Username cannot be empty");
+        return;
+    }
 
     const data = {
         name: nameValue,

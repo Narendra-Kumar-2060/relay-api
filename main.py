@@ -62,19 +62,26 @@ def root():
 
 @app.post("/register")
 def register(user: User):
-    if user.username in get_user_list():
+    username = user.username.strip()
+    name = user.name.strip()
+    
+    if not username:
+        return {"status": "error", "message": "Username cannot be empty"}
+    
+    if username in get_user_list():
         return {"status": "error", "message": "username is already taken"}
-    add_user(user.username, user.password, user.country, user.name)
+    
+    add_user(username, user.password, user.country, name)
     return {"status": "success", "message": "username is created"}
 
 
 @app.post("/login")
 def login(credentials: LoginData):
-    username = credentials.username
+    username = credentials.username.strip()
     password = credentials.password
-
-    if username not in get_user_list():
-        return {"status": "error", "message": "Invalid username or password"}
+    
+    if not username:
+        return {"status": "error", "message": "Username cannot be empty"}
 
     stored_password = get_user_password(username)
 
@@ -88,10 +95,15 @@ def login(credentials: LoginData):
     else:
         return {"status": "error", "message": "Invalid username or password"}
 
-
 @app.post("/messages")
 def send(message: Message):
-    insert_message(message.user, message.message)
+    user = message.user.strip()
+    msg = message.message.strip()
+    
+    if not user or not msg:
+        return {"status": "error", "message": "User and message cannot be empty"}
+    
+    insert_message(user, msg)
 
     latest = get_latest_message()
 
