@@ -8,81 +8,82 @@ const regPasswordInput = document.querySelector("#reg-password");
 const countryInput = document.querySelector("#country");
 
 async function handleLoginClick(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  const usernameValue = usernameInput.value;
-  const passwordValue = passwordInput.value;
+    const usernameValue = usernameInput.value;
+    const passwordValue = passwordInput.value;
 
-  const data = {
-    username: usernameValue,
-    password: passwordValue,
-  };
+    const data = {
+        username: usernameValue,
+        password: passwordValue,
+    };
 
-  try {
-    const response = await fetch("https://relay-api-zizt.onrender.com/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+        const response = await fetch("https://relay-api-zizt.onrender.com/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
 
-    const result = await response.json();
-    console.log(result);
+        const result = await response.json();
+        console.log(result);
 
-    if (result.status === "success") {
-      window.location.href = `index.html?username=${result.user}`;
-    } else {
-      alert(result.message);
+        if (result.status === "success") {
+            sessionStorage.setItem("user", result.user);
+            window.location.href = "index.html";
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("Cannot connect to server");
     }
-  } catch (error) {
-    console.error("Login error:", error);
-    alert("Cannot connect to server");
-  }
 }
 
 async function handleRegisterClick(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  const nameValue = nameInput.value;
-  const usernameValue = regUsernameInput.value;
-  const passwordValue = regPasswordInput.value;
-  const countryValue = countryInput.value;
+    const nameValue = nameInput.value;
+    const usernameValue = regUsernameInput.value;
+    const passwordValue = regPasswordInput.value;
+    const countryValue = countryInput.value;
 
-  const data = {
-    name: nameValue,
-    username: usernameValue,
-    password: passwordValue,
-    country: countryValue,
-  };
+    const data = {
+        name: nameValue,
+        username: usernameValue,
+        password: passwordValue,
+        country: countryValue,
+    };
 
-  try {
-    const response = await fetch("https://relay-api-zizt.onrender.com/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+        const response = await fetch("https://relay-api-zizt.onrender.com/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
 
-    const result = await response.json();
-    console.log(result);
+        const result = await response.json();
+        console.log(result);
 
-    if (result.status === "success") {
-      window.location.href = `login.html?registered=true`;
-    } else {
-      alert(result.message);
+        if (result.status === "success") {
+            window.location.href = `login.html?registered=true`;
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("Cannot connect to server");
     }
-  } catch (error) {
-    console.error("Login error:", error);
-    alert("Cannot connect to server");
-  }
 }
 
 if (loginBtn) {
-  loginBtn.addEventListener("click", handleLoginClick);
+    loginBtn.addEventListener("click", handleLoginClick);
 }
 
 if (registerBtn) {
-  registerBtn.addEventListener("click", handleRegisterClick);
+    registerBtn.addEventListener("click", handleRegisterClick);
 }

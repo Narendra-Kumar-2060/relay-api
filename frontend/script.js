@@ -214,11 +214,11 @@ function loadMessageToUI(messageData) {
     }
 }
 
-const urlParams = new URLSearchParams(window.location.search);
-const username = urlParams.get("username");
+const username = sessionStorage.getItem("user");
 if (!username) {
     window.location.href = "login.html";
 }
+
 usernameField.value = username;
 currentUser.textContent = username;
 sendBtn.addEventListener("click", sendMessage);
@@ -232,6 +232,7 @@ textField.addEventListener("keypress", (e) => {
 
 logoutBtn.addEventListener("click", () => {
     if (confirm("Are you sure you want to logout?")) {
+        sessionStorage.removeItem("user");
         window.location.href = "login.html";
     }
 });
