@@ -185,7 +185,7 @@ function loadMessageToUI(messageData) {
     messageDiv.className = "single-message" + (isOwn ? " own" : "");
     messageDiv.dataset.id = messageData.id;
 
-    const firstLetter = messageData.user.charAt(0).toUpperCase();
+    const firstLetter = messageData.username.charAt(0).toUpperCase();
     const timeString = isoTimeToString(messageData.created_at);
 
     messageDiv.innerHTML = `
