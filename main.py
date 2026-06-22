@@ -6,11 +6,11 @@ from fastapi.staticfiles import StaticFiles
 from database import (
     delete_message_by_id,
     find_messages_by_user,
-    get_all_data,
+    get_all_messages,  
     get_latest_message,
     get_message_by_id,
     insert_message,
-    search_message,
+    search_messages,   
     update_message_by_id,
     get_user_list,
     add_user,
@@ -39,9 +39,8 @@ class Message(BaseModel):
 class MessageUpdate(BaseModel):
     message: str
 
-
 def row_to_dict(row):
-    return {"id": row[0], "user": row[1], "message": row[2], "created_at": row[3]}
+    return {"id": row[0], "username": row[1], "message": row[2], "created_at": row[3]}
 
 
 app = FastAPI()
@@ -112,10 +111,9 @@ def send(message: Message):
     else:
         return {"status": "error", "message": "Failed to create message"}
 
-
 @app.get("/messages")
 def get_all_messages():
-    data = get_all_data()
+    data = get_all_messages()  
     messages = []
     for row in data:
         message_dict = row_to_dict(row)
@@ -170,13 +168,12 @@ def get_only_user_message(username: str):
 
     return {"messages": messages}
 
-
 @app.get("/search/")
 def search_messages(text: str | None = None):
     if not text:
         return {"status": "fail", "message": "no search query"}
 
-    data = search_message(text)
+    data = search_messages(text)  
 
     if not data:
         return {"status": "fail", "message": "No messages found"}
@@ -186,3 +183,4 @@ def search_messages(text: str | None = None):
         messages.append(row_to_dict(row))
 
     return {"messages": messages}
+

@@ -1,30 +1,31 @@
-import sqlite3
+import os
+import psycopg2
 from datetime import datetime
 import hashlib
 
-con = sqlite3.connect("relay.db", check_same_thread=False)
-cur = con.cursor()
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
+def get_connection():
+    if not DATABASE_URL:
+        raise Exception("DATABASE_URL environment variable is not set")
+    return psycopg2.connect(DATABASE_URL)
 
-def create_table():
+def create_tables():
+    conn = get_connection()
+    cur = conn.cursor()
+    
     cur.execute("""
     CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user TEXT,
+        id SERIAL PRIMARY KEY,
+        username TEXT,
         message TEXT,
         created_at TEXT
     )
     """)
-    con.commit()
-
-
-create_table()
-
-
-def create_user_table():
+    
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS user (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
         username TEXT UNIQUE,
         password TEXT,
         created_at TEXT,
@@ -32,86 +33,108 @@ def create_user_table():
         name TEXT
     )
     """)
-    con.commit()
-
-
-create_user_table()
-
+    
+    conn.commit()
+    conn.close()
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-
 def get_user_list():
-    cur.execute("SELECT username FROM user")
-    all_rows = cur.fetchall()
-
-    usernames = []
-
-    for row in all_rows:
-        usernames.append(row[0])
-
-    return usernames
-
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT username FROM users")
+    rows = cur.fetchall()
+    conn.close()
+    return [row[0] for row in rows]
 
 def add_user(username, password, country, name):
     hashed_password = hash_password(password)
     created_at = datetime.now().isoformat()
+    conn = get_connection()
+    cur = conn.cursor()
     cur.execute(
-        "INSERT INTO user (username, password, created_at, country, name) VALUES (?, ?, ?, ?, ?)",
-        (username, hashed_password, created_at, country, name),
+        "INSERT INTO users (username, password, created_at, country, name) VALUES (%s, %s, %s, %s, %s)",
+        (username, hashed_password, created_at, country, name)
     )
-    con.commit()
-
+    conn.commit()
+    conn.close()
 
 def get_user_password(username):
-    cur.execute("SELECT password FROM user WHERE username = ?", (username,))
-    return cur.fetchone()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT password FROM users WHERE username = %s", (username,))
+    result = cur.fetchone()
+    conn.close()
+    return result
 
+def get_all_messages():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM messages ORDER BY created_at ASC")
+    rows = cur.fetchall()
+    conn.close()
+    return rows
 
-def get_all_data():
-    cur.execute("SELECT * FROM messages")
-    return cur.fetchall()
-
+def insert_message(username, message):
+    created_at = datetime.now().isoformat()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO messages (username, message, created_at) VALUES (%s, %s, %s)",
+        (username, message, created_at)
+    )
+    conn.commit()
+    conn.close()
 
 def delete_message_by_id(message_id):
-    cur.execute("DELETE FROM messages WHERE id = ?", (message_id,))
-    con.commit()
-    return cur.rowcount > 0
-
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM messages WHERE id = %s", (message_id,))
+    conn.commit()
+    affected = cur.rowcount > 0
+    conn.close()
+    return affected
 
 def update_message_by_id(message_id, new_message):
-    cur.execute(
-        "UPDATE messages SET message = ? WHERE id = ?", (new_message, message_id)
-    )
-    con.commit()
-    return cur.rowcount > 0
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE messages SET message = %s WHERE id = %s", (new_message, message_id))
+    conn.commit()
+    affected = cur.rowcount > 0
+    conn.close()
+    return affected
 
-
-def insert_message(user, message):
-    created_at = datetime.now().isoformat()
-    cur.execute(
-        "INSERT INTO messages (user, message, created_at) VALUES (?, ?, ?)",
-        (user, message, created_at),
-    )
-    con.commit()
-
-
-def get_message_by_id(message_id: int):
-    cur.execute("SELECT * FROM messages WHERE id = ?", (message_id,))
-    return cur.fetchone()
-
-
-def find_messages_by_user(username):
-    cur.execute("SELECT * FROM messages WHERE user = ?", (username,))
-    return cur.fetchall()
-
-
-def search_message(message):
-    cur.execute("SELECT * FROM messages WHERE message LIKE ?", ("%" + message + "%",))
-    return cur.fetchall()
-
+def get_message_by_id(message_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM messages WHERE id = %s", (message_id,))
+    result = cur.fetchone()
+    conn.close()
+    return result
 
 def get_latest_message():
+    conn = get_connection()
+    cur = conn.cursor()
     cur.execute("SELECT * FROM messages ORDER BY created_at DESC LIMIT 1")
-    return cur.fetchone()
+    result = cur.fetchone()
+    conn.close()
+    return result
+
+def find_messages_by_user(username):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM messages WHERE username = %s", (username,))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def search_messages(search_text):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM messages WHERE message LIKE %s", (f"%{search_text}%",))
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+create_tables()
