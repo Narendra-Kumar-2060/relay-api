@@ -96,7 +96,7 @@ def login(credentials: LoginData):
 
 @app.post("/messages")
 def send(message: Message):
-    user = message.username.strip()
+    user = message.user.strip()
     msg = message.message.strip()
     
     if not user or not msg:
@@ -107,7 +107,7 @@ def send(message: Message):
     latest = get_latest_message()
 
     if latest:
-        return row_to_dict(latest)
+        return row_to_dict(latest) 
     else:
         return {"status": "error", "message": "Failed to create message"}
 
