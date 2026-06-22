@@ -1,6 +1,8 @@
 # Relay Chat
 
-A full-stack real-time chat application built with **FastAPI**, **SQLite**, and a vanilla **HTML/CSS/JS** frontend. Features user authentication, persistent messaging, and full CRUD operations via a RESTful API.
+A full-stack real-time chat application built with **FastAPI**, **PostgreSQL**, and a vanilla **HTML/CSS/JS** frontend. Features user authentication, persistent messaging, and full CRUD operations via a RESTful API.
+
+🔗 **Live Demo:** [relay-api-zizt.onrender.com/frontend/login.html](https://relay-api-zizt.onrender.com/frontend/login.html)
 
 ## Features
 
@@ -9,7 +11,7 @@ A full-stack real-time chat application built with **FastAPI**, **SQLite**, and 
 - User registration and login with **SHA-256 password hashing**
 - Full CRUD operations on messages (Create, Read, Update, Delete)
 - RESTful API design with clean JSON responses
-- SQLite database for persistent storage
+- **PostgreSQL** database for persistent storage
 - CORS middleware for frontend integration
 - Input validation with **Pydantic** models
 - Auto-generated interactive API docs at `/docs`
@@ -19,7 +21,7 @@ A full-stack real-time chat application built with **FastAPI**, **SQLite**, and 
 - Login and registration pages with client-side validation
 - Real-time message display with per-user chat bubbles
 - Edit and delete your own messages
-- Logout with confirmation prompt
+- Session storage authentication
 - Auto-scroll to latest messages
 - Enter key to send messages
 - XSS protection via HTML escaping
@@ -46,6 +48,23 @@ A full-stack real-time chat application built with **FastAPI**, **SQLite**, and 
 ### Prerequisites
 
 - Python 3.8+
+- PostgreSQL (or use SQLite for local development)
+- Modern web browser
+
+### Installation
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/Narendra-Kumar-2060/relay.git
+cd relay
+```
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.8+
 - Modern web browser
 
 ### Installation
@@ -60,28 +79,35 @@ cd relay
 2. **Install dependencies**
 
 ```bash
-pip install fastapi uvicorn
+pip install fastapi uvicorn psycopg2-binary
 ```
 
-3. **Start the backend server**
+3. **Set up environment variables**
+
+Create a .env file or set DATABASE_URL:
+
+```bash
+export DATABASE_URL=postgresql://user:password@localhost/relay_db
+```
+
+4. **Start the backend server**
 
 ```bash
 uvicorn main:app --reload
 ```
 
-4. **Open the frontend**
+5. **Open the frontend**
 
-Open `frontend/login.html` in your browser, or serve it with Live Server in VS Code.
+Open frontend/login.html in your browser, or serve it with Live Server in VS Code.
 
-5. **Register an account and start chatting!**
+6. **Register an account and start chatting!**
 
 ## Project Structure
 
-```
+```text
 relay/
 ├── main.py           # FastAPI app and route handlers
-├── database.py       # SQLite operations and password hashing
-├── relay.db          # SQLite database (auto-created)
+├── database.py       # PostgreSQL operations and password hashing
 ├── frontend/
 │   ├── index.html    # Main chat UI
 │   ├── login.html    # Login page
@@ -95,20 +121,21 @@ relay/
 ## How It Works
 
 1. **Register / Login** — User creates an account; password is hashed with SHA-256 before storage.
-2. **Send Message** — Frontend sends a `POST /messages` request; backend saves to SQLite and returns the new message.
-3. **Load Messages** — On page load, frontend fetches `GET /messages`; all messages render with timestamps and avatars.
-4. **Edit / Delete** — Own messages show Edit and Delete buttons that call `PUT` and `DELETE` endpoints.
-5. **Persist** — Messages survive browser refresh (stored in SQLite).
+2. **Send Message** — Frontend sends a POST /messages request; backend saves to PostgreSQL and returns the new message.
+3. **Load Messages** — On page load, frontend fetches GET /messages; all messages render with timestamps and avatars.
+4. **Edit / Delete** — Own messages show Edit and Delete buttons that call PUT and DELETE endpoints.
+5. **Persist — Messages** survive browser refresh (stored in PostgreSQL).
 
 ## Tech Stack
 
-| Layer    | Technology               |
-| -------- | ------------------------ |
-| Backend  | FastAPI (Python)         |
-| Database | SQLite                   |
-| Auth     | SHA-256 password hashing |
-| Frontend | HTML5, CSS3, JavaScript  |
-| Fonts    | Google Fonts (Poppins)   |
+| Layer      | Technology               |
+| ---------- | ------------------------ |
+| Backend    | FastAPI (Python)         |
+| Database   | PostgreSQL               |
+| Auth       | SHA-256 password hashing |
+| Frontend   | HTML5, CSS3, JavaScript  |
+| Fonts      | Google Fonts (Poppins)   |
+| Deployment | Render                   |
 
 ## Security
 
@@ -130,11 +157,12 @@ relay/
 
 - REST API design and implementation with FastAPI
 - Password hashing and basic authentication flows
-- SQLite database operations with parameterized queries
+- PostgreSQL database operations with parameterized queries
 - Frontend-backend integration using the Fetch API
 - DOM manipulation and dynamic UI rendering
 - Security best practices: XSS prevention, SQL injection, password hashing
 - Responsive CSS design with gradients and animations
+- Deployment on Render with environment variables
 
 ## License
 
