@@ -104,6 +104,15 @@ async function loadMessages() {
         const messageArea = document.querySelector("#message-area");
         messageArea.innerHTML = "";
 
+        if (!data.messages || data.messages.length === 0) {
+            messageArea.innerHTML = `
+                <div class="empty-state" id="empty-state">
+                    <p>No messages yet. Say hello! 👋</p>
+                </div>
+            `;
+            return;
+        }
+
         data.messages.forEach((msg) => {
             loadMessageToUI(msg);
         });
