@@ -112,8 +112,8 @@ def send(message: Message):
         return {"status": "error", "message": "Failed to create message"}
 
 @app.get("/messages")
-def get_all_messages():
-    data = get_all_messages()  
+def get_messages():
+    data = get_all_messages()
     messages = []
     for row in data:
         message_dict = row_to_dict(row)
