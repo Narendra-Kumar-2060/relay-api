@@ -180,7 +180,7 @@ async function sendMessage() {
 }
 
 function loadMessageToUI(messageData) {
-    const isOwn = messageData.user === username;
+    const isOwn = messageData.username === username;
     const messageDiv = document.createElement("div");
     messageDiv.className = "single-message" + (isOwn ? " own" : "");
     messageDiv.dataset.id = messageData.id;
@@ -191,7 +191,7 @@ function loadMessageToUI(messageData) {
     messageDiv.innerHTML = `
         <div class="profile-logo">${firstLetter}</div>
         <div class="message-content">
-            <span class="username">${escapeHtml(messageData.user)}</span>
+            <span class="username">${escapeHtml(messageData.username)}</span>
             <span class="message">${escapeHtml(messageData.message)}</span>
             <span class="time">${timeString}</span>
             ${isOwn
