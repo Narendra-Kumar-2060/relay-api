@@ -32,7 +32,7 @@ class LoginData(BaseModel):
 
 
 class Message(BaseModel):
-    user: str
+    username: str
     message: str
 
 
@@ -96,7 +96,7 @@ def login(credentials: LoginData):
 
 @app.post("/messages")
 def send(message: Message):
-    user = message.user.strip()
+    user = message.username.strip()
     msg = message.message.strip()
     
     if not user or not msg:
